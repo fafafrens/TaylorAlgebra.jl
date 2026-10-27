@@ -78,3 +78,20 @@ end
 # artefacts of the top coefficients, not converged in M.
 println("\neigenvalues at M = 14:")
 foreach(e -> @printf("  %+9.4f %+8.4f im\n", real(e), imag(e)), spectrum(y, Val(14)))
+
+# The fixed-point potential. The series is in y = ρ − κ; `shift` re-expands it
+# around the origin so it is a polynomial in ρ, and `integrate` gives u with
+# u(0) = 0. Trustworthy out to a few units in y (the series has a complex pair
+# of singularities, so the ratio and root estimates of the radius disagree).
+κ = y[end]
+w = shift(Series(vcat(0.0, y[1:14])), -κ)   # u'(ρ) as a series in ρ
+u = integrate(w)                            # u(ρ), u(0) = 0
+@printf("\nu'(0) = %.5f, u(κ) − u(0) = %.5f, radius estimate (root test) %.2f\n",
+    w(0.0), u(κ), radius(u; nlast=6, method=:root)[1])
+
+if Base.find_package("Plots") !== nothing   # optional plot, skipped when Plots is not installed
+    @eval using Plots
+    ρ = range(0, κ + 4, 400)
+    display(plot(ρ, [w.(ρ) u.(ρ)]; xlabel="ρ", label=["u'(ρ)" "u(ρ)"]))
+    vline!([κ]; label="κ")
+end
