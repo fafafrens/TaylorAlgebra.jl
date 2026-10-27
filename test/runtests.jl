@@ -89,7 +89,12 @@ end
 end
 
 @testset "no allocation" begin
-    alloc(f, args...) = (f(args...); @allocated f(args...))
+    # F and N in the signature force specialization on the function and the argument
+    # types; without them Julia (1.10) calls f dynamically and boxes the result.
+    function alloc(f::F, args::Vararg{Any,N}) where {F,N}
+        f(args...)                                   # compile first
+        return @allocated f(args...)
+    end
     @test alloc(*, a, b) == 0 && alloc(/, a, b) == 0 && alloc(inv, a) == 0
     @test alloc(^, a, 2.5) == 0 && alloc(exp, a) == 0 && alloc(log, a) == 0
     @test alloc(derivative, a) == 0 && alloc(integrate, a) == 0

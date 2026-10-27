@@ -130,9 +130,10 @@ end
     m = zero(MVector{N,R})
     @inbounds begin
         ib1 = inv(b.c[1])
-        for n in 1:N
-            s = zero(R)
-            for k in 2:n
+        m[1] = a.c[1] * ib1
+        for n in 2:N                          # same index pattern as inv: provably in bounds,
+            s = zero(R)                       # so the buffer stays on the stack even with
+            for k in 2:n                      # --check-bounds=yes (Pkg.test, CI)
                 s += b.c[k] * m[n-k+1]
             end
             m[n] = (a.c[n] - s) * ib1
@@ -333,17 +334,24 @@ Base.:∘(a::Series, b::Series) = compose(a, b)
     shift(a, κ)
 
 The same polynomial re-expanded around x = κ: returns b with
-a(x) = b(x − κ), i.e. b_n = Σ_m C(m,n) κ^{m−n} a_m. Exact (same order) by
-repeated synthetic division (Shaw–Traub), O(N²), no allocation. `shift(a, κ)`
-evaluated at y = −κ gives back a(0).
+a(x) = b(x − κ), i.e. b_n = Σ_{m≥n} C(m,n) κ^{m−n} a_m. Exact (same order),
+O(N²): Horner's form b = a(κ + y), one step v ← κ·v + y·v + a_n per coefficient,
+each step a single unrolled ntuple on the SVector. No mutable buffer: an MVector
+that a bounds-error path could capture is moved to the heap under
+--check-bounds=yes (Pkg.test, CI), while this stays in registers.
+`shift(a, κ)` evaluated at y = −κ gives back a(0).
 """
+# the step is a separate function: a closure capturing a variable that is
+# reassigned in the loop (v) would box it.
+@inline _shift_step(v::SVector{N,R}, κ, an) where {N,R} =
+    SVector{N,R}(ntuple(i -> κ * v[i] + (i > 1 ? v[i-1] : zero(R)) + (i == 1 ? R(an) : zero(R)), Val(N)))
 @inline function shift(a::Series{N,T}, κ::Number) where {N,T}
     R = promote_type(T, typeof(κ))
-    m = MVector{N,R}(a.c)
-    @inbounds for j in 1:N-1, i in N-1:-1:j
-        m[i] += κ * m[i+1]
+    v = SVector{N,R}(ntuple(i -> i == 1 ? R(a.c[N]) : zero(R), Val(N)))
+    for n in N-1:-1:1
+        v = _shift_step(v, κ, a.c[n])
     end
-    return Series{N,R}(SVector(m))
+    return Series{N,R}(v)
 end
 
 """

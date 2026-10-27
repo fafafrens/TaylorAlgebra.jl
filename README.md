@@ -37,8 +37,7 @@ inverse(Series([0.0, 1.0, 1.0]))   # compositional inverse
   `X^n` with a run-time `n` dispatches dynamically.
 - **Algorithms.** Cauchy product as a generator sum inside one `ntuple`;
   division, inverse, real powers (Miller's recurrence), `exp` and `log` as
-  O(N²) recursions on a stack `MVector`; `shift` by Shaw–Traub synthetic
-  division; `inverse` by fixed-point iteration (exact after N−1 steps);
+  O(N²) recursions on a stack `MVector`; `shift` by Horner's form of a(κ + y); `inverse` by fixed-point iteration (exact after N−1 steps);
   `radius` by a Domb–Sykes ratio fit or the root test.
 
 ## Example: closure of a differential hierarchy
