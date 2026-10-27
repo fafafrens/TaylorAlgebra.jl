@@ -40,35 +40,50 @@ inverse(Series([0.0, 1.0, 1.0]))   # compositional inverse
   O(N²) recursions on a stack `MVector`; `shift` by Horner's form of a(κ + y); `inverse` by fixed-point iteration (exact after N−1 steps);
   `radius` by a Domb–Sykes ratio fit or the root test.
 
-## Example: closure of a differential hierarchy
+## Example: the harmonic oscillator by the closure method
 
-For an ODE `F(w, w', w'') = 0` solved with `w = Σ_{n<M} W_n xⁿ` and the
-closure `W_M = 0`:
+For an ODE solved by a polynomial ansatz, the closure of the coefficient
+hierarchy is written as padding, and the residual comes out at the order to
+which it is actually determined. For the quantum harmonic oscillator,
+ψ = e^{−x²/2} h(x) with h'' − 2x h' + (ε − 1) h = 0 and ε = 2E:
 
 ```julia
-W   = pad(Series(y), Val(M + 1))     # unknowns W_0..W_{M-1}, padded: that IS the closure
-res = F(W, derivative(W), derivative(W, Val(2)))   # comes out at order M−1: M equations
+using TaylorAlgebra, ForwardDiff
+
+function residual(y, ::Val{n}) where {n}
+    ε = y[end]
+    c = vcat(y[1:n], 2.0^n)                 # c_0 … c_{n−1} unknown, c_n = 2ⁿ fixed
+    h = Series{n+1}(c)                      # h = Σ c_j xʲ, degree n
+    h = pad(h, Val(n + 3))                  # closure: c_{n+1} = c_{n+2} = 0
+    h′ = derivative(h)
+    h″ = derivative(h′)
+    r = h″ - 2X * h′ + (ε - 1) * h          # order n: n+1 equations, n+1 unknowns
+    return r.c
+end
+
+y = vcat(zeros(n), 2n + 0.6)                # rough guess for (c_0 … c_{n−1}, ε)
+for _ in 1:40
+    y -= ForwardDiff.jacobian(z -> residual(z, Val(n)), y) \ residual(y, Val(n))
+end
 ```
 
-Newton on `y ↦ res.c` with `ForwardDiff.jacobian` is then a square system.
+Newton converges to ε = 2n + 1 (E = n + ½) and the coefficients of the
+Hermite polynomial Hₙ, with the wrong-parity coefficients vanishing. The full
+script is `examples/harmonic_oscillator.jl`:
 
-## Tests that "discover" physics
+```
+ n      ε      E = ε/2   h(x) = H_n(x)
+ 0   1.00000   0.50000   +1 x^0
+ 1   3.00000   1.50000   +2 x^1
+ 2   5.00000   2.50000   +4 x^2 -2 x^0
+ 3   7.00000   3.50000   +8 x^3 -12 x^1
+ 4   9.00000   4.50000   +16 x^4 -48 x^2 +12 x^0
+ 5  11.00000   5.50000   +32 x^5 -160 x^3 +120 x^1
+```
 
-Besides the algebraic identities, the test suite solves three textbook
-eigenvalue problems with the closure method above (polynomial ansatz, padding as
-closure, Newton with ForwardDiff on coefficients and eigenvalue), and checks that
-the algebra finds the known answers by itself: the harmonic oscillator
-(ε = 2n + 1 and the Hermite polynomials, with two closure coefficients because
-the origin is a regular point), the hydrogen atom (κ = 1/n, the Bohr levels, and
-the Laguerre coefficients, one closure coefficient because the origin is a
-regular singular point), and the Hermite polynomials again from their generating
-function and from Rodrigues' formula.
-
-## Status
-
-Written for a functional-renormalisation-group fixed-point problem
-(expansion of the effective potential and wave-function renormalisation in
-the field). Not registered. Tests: `] test TaylorAlgebra`.
+The test suite does the same for the hydrogen atom, where the origin is a
+regular singular point of the radial equation and one closure coefficient
+suffices: it finds κ = 1/n, the Bohr levels, and the Laguerre coefficients.
 
 ## Benchmarks
 
