@@ -52,6 +52,18 @@ res = F(W, derivative(W), derivative(W, Val(2)))   # comes out at order M−1: M
 
 Newton on `y ↦ res.c` with `ForwardDiff.jacobian` is then a square system.
 
+## Tests that "discover" physics
+
+Besides the algebraic identities, the test suite solves three textbook
+eigenvalue problems with the closure method above (polynomial ansatz, padding as
+closure, Newton with ForwardDiff on coefficients and eigenvalue), and checks that
+the algebra finds the known answers by itself: the harmonic oscillator
+(ε = 2n + 1 and the Hermite polynomials, with two closure coefficients because
+the origin is a regular point), the hydrogen atom (κ = 1/n, the Bohr levels, and
+the Laguerre coefficients, one closure coefficient because the origin is a
+regular singular point), and the Hermite polynomials again from their generating
+function and from Rodrigues' formula.
+
 ## Status
 
 Written for a functional-renormalisation-group fixed-point problem
