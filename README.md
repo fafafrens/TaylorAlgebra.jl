@@ -82,9 +82,20 @@ spanning six orders of magnitude, still exact); the first rows:
  5  11.00000   5.50000   +32 x^5 -160 x^3 +120 x^1
 ```
 
-The test suite does the same for the hydrogen atom, where the origin is a
-regular singular point of the radial equation and one closure coefficient
-suffices: it finds κ = 1/n, the Bohr levels, and the Laguerre coefficients.
+`examples/hydrogen_atom.jl` does the same for the hydrogen atom, where the
+origin is a regular singular point of the radial equation and one closure
+coefficient suffices: it finds κ = 1/n for every (n, l), the Bohr levels
+E = −1/(2n²) with their degeneracy in l, and the Laguerre coefficients:
+
+```
+ n  l  nr     κ        E [Ha]    v(ρ)
+ 1  0   0   1.00000   -0.50000    +1 ρ^0
+ 2  0   1   0.50000   -0.12500    +1 ρ^0 -0.5 ρ^1
+ 2  1   0   0.50000   -0.12500    +1 ρ^0
+ 3  0   2   0.33333   -0.05556    +1 ρ^0 -0.666667 ρ^1 +0.0740741 ρ^2
+ 3  1   1   0.33333   -0.05556    +1 ρ^0 -0.166667 ρ^1
+ ...
+```
 
 ## Benchmarks
 
