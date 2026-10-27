@@ -101,7 +101,7 @@ H(x, n) = (1.0, 2x, 4x^2 - 2, 8x^3 - 12x, 16x^4 - 48x^2 + 12, 32x^5 - 160x^3 + 1
         return residual.c
     end
     for n in 0:5
-        y = vcat(0.3 * rand(n), 2n + 0.6)                       # rough guess
+        y = vcat([0.3 * (-1.0)^j / (j + 1) for j in 0:n-1], 2n + 0.6)   # rough guess
         for _ in 1:40
             f = oscillator(y, Val(n))
             maximum(abs, f) < 1e-12 && break
@@ -109,7 +109,7 @@ H(x, n) = (1.0, 2x, 4x^2 - 2, 8x^3 - 12x, 16x^4 - 48x^2 + 12, 32x^5 - 160x^3 + 1
         end
         ε = y[end]; h = Series(vcat(y[1:n], 2.0^n))
         @test ε ≈ 2n + 1                                        # E_n = n + 1/2
-        @test all(h(x) ≈ H(x, n) for x in (-1.3, 0.0, 0.5, 2.0))  # h = H_n
+        @test all(isapprox(h(x), H(x, n); atol=1e-9) for x in (-1.3, 0.0, 0.5, 2.0))  # h = H_n (H_n(0) can be 0)
         @test all(abs(coefficient(h, j)) < 1e-10 for j in (n - 1):-2:0)   # parity
     end
 end
