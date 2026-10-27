@@ -103,6 +103,25 @@ operator, with the composition done by the algebra. A degree-12 polynomial in
 x² gives α = 2.5029078751 (exact 2.502907875…), ten digits of a universal
 constant from a 13 × 13 Newton solve.
 
+`examples/wilson_fisher_lpa.jl` is a renormalisation-group fixed point: the
+Wilson–Fisher fixed point of a scalar field in d = 3 in the local potential
+approximation, expanded around the minimum of the potential (unknown position
+κ, two closure coefficients since the minimum is a regular point). The
+critical exponents come from the eigenvalues of the linearised coefficient
+flow and converge quickly with the polynomial degree to the known values of
+this approximation, ν = 0.6496 and ω = 0.6557:
+
+```
+ M      κ         λ = v_1       ν         ω
+ 4  1.8093912  0.1271538  0.650492  0.639799
+ 8  1.8148746  0.1261707  0.649574  0.655765
+12  1.8148984  0.1261645  0.649562  0.655754
+```
+
+`examples/lambert_w.jl` builds Lambert's W from w·eʷ = x with `inverse` and
+checks the coefficients against Lagrange's closed form (−n)ⁿ⁻¹/n!; `radius`
+estimates its radius of convergence as 0.370 against the exact 1/e = 0.368.
+
 ## Benchmarks
 
 `benchmark/benchmarks.jl` is a BenchmarkTools suite (also usable with
