@@ -57,17 +57,24 @@ Eigenvalues of the linearised coefficient flow at the fixed point (κ fixed,
 v_0 free). With ∂t = k∂k a relevant direction has a negative eigenvalue: the
 most negative one is −1/ν, the smallest positive one is ω.
 """
-function exponents(y, ::Val{M}) where {M}
+function spectrum(y, ::Val{M}) where {M}
     κ = y[end]
     f(c) = flow(pad(Series{M+1}(c), Val(M + 3)), κ).c       # c = (v_0, …, v_M)
-    ev = sort(real.(eigvals(ForwardDiff.jacobian(f, vcat(0.0, y[1:M])))))
-    return -ev[1], ev[findfirst(>(0), ev)]               # 1/ν, ω
+    return sort(eigvals(ForwardDiff.jacobian(f, vcat(0.0, y[1:M]))); by=real)
 end
+exponents(ev) = (-real(ev[1]), real(ev[findfirst(e -> real(e) > 0, ev)]))   # 1/ν, ω
 
 println(" M      κ         λ = v_1       ν         ω      (LPA Litim: ν = 0.6496, ω = 0.6557)")
 y = solve(2)
 for M in 2:2:14
     global y = solve(M, y)
-    θ, ω = exponents(y, Val(M))
+    θ, ω = exponents(spectrum(y, Val(M)))
     @printf("%2d  %.7f  %.7f  %.6f  %.6f\n", M, y[end], y[1], 1 / θ, ω)
 end
+
+# The whole spectrum at the largest M: one relevant direction (−1/ν), then the
+# irrelevant ones ω, ω_2, …, growing roughly like the canonical dimension j − 2
+# of the coupling v_j. The highest ones come in complex pairs: truncation
+# artefacts of the top coefficients, not converged in M.
+println("\neigenvalues at M = 14:")
+foreach(e -> @printf("  %+9.4f %+8.4f im\n", real(e), imag(e)), spectrum(y, Val(14)))
