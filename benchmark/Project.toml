@@ -1,0 +1,9 @@
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+TaylorAlgebra = "8db2c346-9c66-4241-8402-e6298c0f88d0"
+
+[sources]
+TaylorAlgebra = {path = ".."}
