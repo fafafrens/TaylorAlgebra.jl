@@ -38,7 +38,7 @@ function solve(n; it=40, tol=1e-12)
 end
 
 println(" n      ε      E = ε/2   h(x) = H_n(x)")
-for n in 0:5
+for n in 0:20
     ε, h = solve(n)
     terms = [@sprintf("%+g x^%d", coefficient(h, j), j) for j in n:-1:0 if abs(coefficient(h, j)) > 1e-10]
     @printf("%2d  %8.5f  %8.5f   %s\n", n, ε, ε / 2, join(terms, " "))

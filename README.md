@@ -69,7 +69,8 @@ end
 
 Newton converges to ε = 2n + 1 (E = n + ½) and the coefficients of the
 Hermite polynomial Hₙ, with the wrong-parity coefficients vanishing. The full
-script is `examples/harmonic_oscillator.jl`:
+script, `examples/harmonic_oscillator.jl`, runs to n = 10 (H₁₀ has coefficients
+spanning six orders of magnitude, still exact); the first rows:
 
 ```
  n      ε      E = ε/2   h(x) = H_n(x)
