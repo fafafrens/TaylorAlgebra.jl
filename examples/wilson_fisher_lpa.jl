@@ -43,8 +43,8 @@ function solve(M, y0=vcat(0.12, zeros(M - 1), 1.9); it=50, tol=1e-12)   # guess:
         f = residual(y, Val(M))
         maximum(abs, f) < tol && break
         δ = ForwardDiff.jacobian(z -> residual(z, Val(M)), y) \ f
-        s = 1.0                                       # damping: keep κ > 0 and λ > 0
-        while (y - s * δ)[end] < 0 || (y - s * δ)[1] < 0
+        s = 1.0                                       # damping: halve the step while it would
+        while s > 1e-8 && ((y - s * δ)[end] < 0 || (y - s * δ)[1] < 0)   # make κ or λ negative
             s /= 2
         end
         y -= s * δ
