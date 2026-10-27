@@ -91,9 +91,14 @@ H(x, n) = (1.0, 2x, 4x^2 - 2, 8x^3 - 12x, 16x^4 - 48x^2 + 12, 32x^5 - 160x^3 + 1
     # ε = 2n + 1, i.e. E_n = n + 1/2, and h = H_n, including the vanishing of the
     # coefficients of the wrong parity.
     function oscillator(y, ::Val{n}) where {n}
-        h = pad(Series{n+1}(vcat(y[1:n], 2.0^n)), Val(n + 3)); ε = y[end]
-        hp = derivative(h)
-        return (derivative(hp) - 2 * X * hp + (ε - 1) * h).c
+        ε = y[end]
+        c = vcat(y[1:n], 2.0^n)                 # c_0 … c_{n−1} unknown, c_n = 2ⁿ fixed
+        h = Series{n+1}(c)                      # h = Σ c_j xʲ, degree n
+        h = pad(h, Val(n + 3))                  # closure: c_{n+1} = c_{n+2} = 0
+        h′ = derivative(h)
+        h″ = derivative(h′)
+        residual = h″ - 2X * h′ + (ε - 1) * h   # h'' − 2x h' + (ε − 1) h = 0, order n
+        return residual.c
     end
     for n in 0:5
         y = vcat(0.3 * rand(n), 2n + 0.6)                       # rough guess
@@ -139,9 +144,14 @@ end
     # algebra must then find κ = 1/n with n = nr + l + 1, i.e. the Bohr levels
     # E = −1/(2n²), and the coefficients of the associated Laguerre polynomial.
     function hydrogen(y, ::Val{nr}, l) where {nr}
-        v = pad(Series{nr+1}(vcat(one(eltype(y)), y[1:nr])), Val(nr + 2)); κ = y[end]
-        vp = derivative(v); vpp = derivative(vp)
-        return (X * vpp + 2 * ((l + 1) * vp - κ * X * vp) + 2 * (1 - κ * (l + 1)) * v).c
+        κ = y[end]
+        c = vcat(one(eltype(y)), y[1:nr])       # c_0 = 1 fixed, c_1 … c_nr unknown
+        v = Series{nr+1}(c)                     # v = Σ c_j ρʲ, degree nr
+        v = pad(v, Val(nr + 2))                 # closure: c_{nr+1} = 0
+        v′ = derivative(v)
+        v″ = derivative(v′)
+        residual = X * v″ + 2 * ((l + 1) * v′ - κ * X * v′) + 2 * (1 - κ * (l + 1)) * v   # order nr
+        return residual.c
     end
     for (nr, l) in ((0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (3, 2))
         n = nr + l + 1
