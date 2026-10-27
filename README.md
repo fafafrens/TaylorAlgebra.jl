@@ -97,6 +97,12 @@ E = −1/(2n²) with their degeneracy in l, and the Laguerre coefficients:
  ...
 ```
 
+`examples/feigenbaum.jl` solves a functional equation instead of an ODE: the
+Feigenbaum–Cvitanović fixed point g(x) = −α g(g(−x/α)) of the period-doubling
+operator, with the composition done by the algebra. A degree-12 polynomial in
+x² gives α = 2.5029078751 (exact 2.502907875…), ten digits of a universal
+constant from a 13 × 13 Newton solve.
+
 ## Benchmarks
 
 `benchmark/benchmarks.jl` is a BenchmarkTools suite (also usable with
