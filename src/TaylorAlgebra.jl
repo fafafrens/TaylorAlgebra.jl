@@ -329,7 +329,10 @@ end
 (a::Series)(x::Number) = evaluate(a, x)
 (a::Series)(b::Series) = compose(a, b)
 Base.:∘(a::Series, b::Series) = compose(a, b)
-
+# the step is a separate function: a closure capturing a variable that is
+# reassigned in the loop (v) would box it.
+@inline _shift_step(v::SVector{N,R}, κ, an) where {N,R} =
+    SVector{N,R}(ntuple(i -> κ * v[i] + (i > 1 ? v[i-1] : zero(R)) + (i == 1 ? R(an) : zero(R)), Val(N)))
 """
     shift(a, κ)
 
@@ -341,10 +344,6 @@ that a bounds-error path could capture is moved to the heap under
 --check-bounds=yes (Pkg.test, CI), while this stays in registers.
 `shift(a, κ)` evaluated at y = −κ gives back a(0).
 """
-# the step is a separate function: a closure capturing a variable that is
-# reassigned in the loop (v) would box it.
-@inline _shift_step(v::SVector{N,R}, κ, an) where {N,R} =
-    SVector{N,R}(ntuple(i -> κ * v[i] + (i > 1 ? v[i-1] : zero(R)) + (i == 1 ? R(an) : zero(R)), Val(N)))
 @inline function shift(a::Series{N,T}, κ::Number) where {N,T}
     R = promote_type(T, typeof(κ))
     v = SVector{N,R}(ntuple(i -> i == 1 ? R(a.c[N]) : zero(R), Val(N)))
